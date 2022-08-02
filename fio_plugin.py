@@ -55,23 +55,25 @@ UnifiedRwReport = enum.Enum(
 )
 
 
+sync_io_engines = set(('sync', 'psync'))
+
 SyncIoEngine = enum.Enum(
     'SyncIoEngine',
-    ' '.join(('sync', 'psync'))
-
+    list(sync_io_engines)
 )
+
+async_io_engines = set(('libaio', 'windowsaio'))
 
 AsyncIoEngine = enum.Enum(
     'AsyncIoEngine',
-    ' '.join((
-        'libaio',
-        'windowsaio'
-    ))
+    list(async_io_engines)
 )
 
 # TODO: add other ioengines?
 # https://fio.readthedocs.io/en/latest/fio_doc.html#i-o-engine
 IoEngine = Union[SyncIoEngine, AsyncIoEngine]
+
+
 
 
 IoSubmitMode = enum.Enum(
@@ -148,19 +150,26 @@ class DiskUtilization:
 #     iodepth: IoDepth
 #     iorate: IoRate
 
+import dataclasses
 
 @dataclass
 class FioParams:
     size: str
-    # ioengine: IoEngine
+    # ioengine_str: str
+    # ioengine: IoEngine = field(init=False)
     ioengine: str
     iodepth: int  # only used with async ioengines
     # io_submit_mode: IoSubmitMode  # only used with async ioengines
     io_submit_mode: str
     rate_iops: int
-    rate_process: Optional[RateProcess] = 'linear'
+    # rate_process: Optional[RateProcess] = 'linear'
+    rate_process: Optional[str] = 'linear'
     direct: Optional[bool] = False
-    readwrite: Optional[IoPattern] = 'read'
+    # readwrite: Optional[IoPattern] = 'read'
+    readwrite: Optional[str] = 'read'
+
+    # def __post_init__(self):
+    #     self.ioengine = IoEngine(self.ioengine_str)
 
 
 
@@ -264,18 +273,6 @@ fio_output_schema = plugin.build_object_schema(FioSuccessOutput)
 )
 def run(params: FioParams) -> typing.Tuple[str, Union[FioSuccessOutput, FioErrorOutput]]:
     print(params)
-    # FioParams(
-    #     size='4m',
-    #     ioengine=AsyncIoEngine.libaio,
-    #     iodepth=32,
-    #     io_submit_mode=IoSubmitMode.offline,
-    #     rate_iops=50,
-    #     rate_process=RateProcess.poisson,
-    #     direct=True
-    # )
-
-
-
     return 'success', FioSuccessOutput(
         'fio-3.29',
         1659468121,
@@ -292,8 +289,16 @@ if __name__ == '__main__':
             )
         )
     )
+    # FioParams(
+    #             size='4m',
+    #             # ioengine=AsyncIoEngine.libaio,
+    #             ioengine='libaio',
+    #             iodepth=32,
+    #             # io_submit_mode=IoSubmitMode.offline,
+    #             io_submit_mode='offline',
+    #             rate_iops=50,
+    #             # rate_process=RateProcess.poisson,
+    #             rate_process='poisson',
+    #             direct=True
+    #         )
 
-    # fio_input_schema = schema.unserialize(
-    #     json.loads('results/2022-08-01T16:09-04:00_plus_poisson-submit.json')
-    # )
-    # print(fio_input_schema)
