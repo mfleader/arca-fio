@@ -292,7 +292,7 @@ class FioSuccessOutput:
             "name": "global options"
             }
     )
-    disk_util: typing.Optional[typing.List[DiskUtilization]] = None
+    disk_util: Optional[typing.List[DiskUtilization]] = None
 
 
 fio_output_schema = plugin.build_object_schema(FioSuccessOutput)
@@ -317,17 +317,14 @@ def run(params: FioParams) -> typing.Tuple[str, Union[FioSuccessOutput, FioError
     ]
 
     try:
-        subprocess.check_output(
-            cmd
-        )
+        subprocess.check_output(cmd)
     except subprocess.CalledProcessError as error:
-        return 'error', FioErrorOutput('oops')
+        return 'error', FioErrorOutput(str(error))
 
     with open(f'tmp/{outfile_name}.json', 'r') as output_file:
         fio_results = output_file.read()
 
-    fio_json = json.loads(fio_results)
-    output = fio_output_schema.unserialize(fio_json)
+    output: FioSuccessOutput = fio_output_schema.unserialize(json.loads(fio_results))
     return 'success', output
 
 
