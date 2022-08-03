@@ -154,6 +154,7 @@ import dataclasses
 
 @dataclass
 class FioParams:
+    name: str
     size: str
     # ioengine_str: str
     # ioengine: IoEngine = field(init=False)
@@ -164,7 +165,9 @@ class FioParams:
     rate_iops: int
     # rate_process: Optional[RateProcess] = 'linear'
     rate_process: Optional[str] = 'linear'
-    direct: Optional[bool] = False
+    # direct: Optional[bool] = False
+    # direct: Annotated[Optional[int], validation.max(1)] = 0
+    direct: Optional[int] = 0
     # readwrite: Optional[IoPattern] = 'read'
     readwrite: Optional[str] = 'read'
 
@@ -173,14 +176,22 @@ class FioParams:
 
 
 
-@dataclass
-class JobMetadata:
-    jobname: str
-    groupid: int
-    error: int
-    eta: int
-    elapsed: int
-    job_options: dict
+# @dataclass
+# class JobMetadata:
+#     jobname: str
+#     groupid: int
+#     error: int
+#     eta: int
+#     elapsed: int
+#     job_options: dict
+
+#     @classmethod
+#     def new(cls, json_data: dict):
+#         kwargs: dict[str, typing.Any] = {}
+#         for key, value in json_data.items():
+#             safe_key = key.replace(' ', '_')
+#             kwargs[safe_key] = value
+#         return cls(**kwargs)
 
 
 @dataclass
@@ -222,7 +233,13 @@ class IoOutput:
 
 @dataclass
 class JobResult:
-    metadata: JobMetadata
+    # metadata: JobMetadata
+    jobname: str
+    groupid: int
+    error: int
+    eta: int
+    elapsed: int
+    job_options: dict[str, str]
     read: Optional[IoOutput]
     write: Optional[IoOutput]
     trim: Optional[IoOutput]
@@ -245,20 +262,37 @@ class JobResult:
     latency_percentile: float
     latency_window: int
 
-
+    @classmethod
+    def new(cls, json_data: dict):
+        kwargs: dict[str, typing.Any] = {}
+        for key, value in json_data.items():
+            safe_key = key.replace(' ', '_')
+            kwargs[safe_key] = value
+        return cls(**kwargs)
 
 
 @dataclass
 class FioSuccessOutput:
     fio_version: str = field(metadata={
-        "id": "fio version"
+        "id": "fio version",
+        "name": "fio version"
+
     })
     timestamp: int
     timestamp_ms: int
     time: str
-    # jobs: List[JobResult]
+    jobs: List[JobResult]
     # global_options: Optional[dict[str, str]] = None
-    disk_util: Optional[List[DiskUtilization]] = None
+    # disk_util: Optional[List[DiskUtilization]] = None
+
+    @classmethod
+    def new(cls, json_data: dict):
+        kwargs: dict[str, typing.Any] = {}
+        for key, value in json_data.items():
+            safe_key = key.replace(' ', '_')
+            kwargs[safe_key] = value
+        return cls(**kwargs)
+
 
 
 fio_input_schema = plugin.build_object_schema(FioParams)
@@ -272,13 +306,32 @@ fio_output_schema = plugin.build_object_schema(FioSuccessOutput)
     outputs={"success": FioSuccessOutput, "error": FioErrorOutput}
 )
 def run(params: FioParams) -> typing.Tuple[str, Union[FioSuccessOutput, FioErrorOutput]]:
-    print(params)
-    return 'success', FioSuccessOutput(
-        'fio-3.29',
-        1659468121,
-        1659468121278,
-        "Tue Aug  2 15:22:01 2022",
-    )
+
+    outfile_name = 'fio-plus'
+    cmd = [
+        'fio',
+        *[
+            f"--{key}={value}" for key, value in dataclasses.asdict(params).items()
+        ],
+        '--output-format=json+',
+        f"--output=tmp/{outfile_name}.json"
+    ]
+
+    try:
+        out = subprocess.check_output(
+            cmd
+        )
+    except subprocess.CalledProcessError as error:
+        return 'error', FioErrorOutput('oops')
+
+    with open(f'tmp/{outfile_name}.json', 'r') as output_file:
+        fio_results = output_file.read()
+
+    fio_json = json.loads(fio_results)
+
+    output = FioSuccessOutput.new(fio_json)
+
+    return 'success', output
 
 
 if __name__ == '__main__':

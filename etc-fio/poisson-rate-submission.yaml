@@ -1,0 +1,9 @@
+name: poisson-rate-submit
+size: 1024
+readwrite: randread
+ioengine: libaio
+iodepth: 32
+io_submit_mode: offload
+rate_iops: 50
+rate_process: poisson
+direct: 1
