@@ -6,29 +6,30 @@ import fio_plugin
 from arcaflow_plugin_sdk import plugin
 
 
+with open('mocks/poisson-rate-submission_plus-output.json', 'r') as fout:
+    poisson_submit_outfile = fout.read()
+
+poisson_submit_output = json.loads(poisson_submit_outfile)
+
+with open('mocks/poisson-rate-submission_input.yaml', 'r') as fin:
+    poisson_submit_infile = fin.read()
+
+poisson_submit_input = yaml.safe_load(poisson_submit_infile)
+
+
 class FioPluginTest(unittest.TestCase):
-    with open('mocks/poisson-rate-submission_plus-output.json', 'r') as fout:
-        poisson_submit_outfile = fout.read()
-
-    poisson_submit_output = json.loads(poisson_submit_outfile)
-
-    with open('mocks/poisson-rate-submission_input.yaml', 'r') as fin:
-        poisson_submit_infile = fin.read()
-
-    poisson_submit_input = yaml.load(poisson_submit_infile)
-
 
     @staticmethod
     def test_serialization():
         plugin.test_object_serialization(
             fio_plugin.FioParams(
-                poisson_submit_input
+                **poisson_submit_input
             )
         )
 
         plugin.test_object_serialization(
-            fio_plugin.FioSuccessOutput(
-                **poisson_submit_output
+            fio_plugin.fio_output_schema.unserialize(
+                poisson_submit_output
             )
         )
 
