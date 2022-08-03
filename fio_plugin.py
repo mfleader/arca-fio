@@ -24,9 +24,10 @@ import fileinput
 import os
 import shutil
 import csv
+import dataclasses
 from dataclasses import dataclass, field
 # import dataclasses
-from typing import List, Optional, Union, Annotated
+from typing import Optional, Union, Annotated, Dict
 from arcaflow_plugin_sdk import plugin
 from arcaflow_plugin_sdk import schema
 
@@ -110,7 +111,7 @@ class DiskUtilization:
     aggr_read_ticks: Optional[int] = None
     aggr_write_ticks: Optional[int] = None
     aggr_in_queue: Optional[int]= None
-    aggr_util: Optional[int] = None
+    aggr_util: Optional[float] = None
 
 
 # @dataclass
@@ -150,7 +151,7 @@ class DiskUtilization:
 #     iodepth: IoDepth
 #     iorate: IoRate
 
-import dataclasses
+
 
 @dataclass
 class FioParams:
@@ -201,13 +202,44 @@ class IoLatency:
     mean: float
     stddev: float
     N: int
-    percentile: Optional[dict[str, int]]
-    bins: Optional[dict[str, int]]
+    percentile: Optional[Dict[str, int]] = None
+    bins: Optional[Dict[str, int]] = None
+
+    @classmethod
+    def new(cls, json_data: Dict):
+        kwargs: dict[str, typing.Any] = {}
+        for key, value in json_data.items():
+            safe_key = key.replace(' ', '_')
+            kwargs[safe_key] = value
+        kwargs['min_'] = kwargs['min']
+        kwargs['max_'] = kwargs['max']
+        del kwargs['min']
+        del kwargs['max']
+        return cls(**kwargs)
 
 
 @dataclass
-class IoOutput:
+class SyncIoOutput:
+    total_ios: int
+    lat_ns: IoLatency
+
+    @classmethod
+    def new(cls, json_data: Dict):
+        kwargs: dict[str, typing.Any] = {}
+        for key, value in json_data.items():
+            safe_key = key.replace(' ', '_')
+            kwargs[safe_key] = value
+
+        if 'lat_ns' in json_data:
+            kwargs['lat_ns'] = IoLatency.new(json_data['lat_ns'])
+        print(kwargs.keys())
+        return cls(**kwargs)
+
+
+@dataclass
+class AioOutput:
     io_bytes: int
+    io_kbytes: int
     bw_bytes: int
     bw: int
     iops: float
@@ -230,6 +262,23 @@ class IoOutput:
     iops_stddev: float
     iops_samples: int
 
+    @classmethod
+    def new(cls, json_data: Dict):
+        kwargs: dict[str, typing.Any] = {}
+        for key, value in json_data.items():
+            safe_key = key.replace(' ', '_')
+            kwargs[safe_key] = value
+        if 'slat_ns' in json_data:
+            kwargs['slat_ns'] = IoLatency.new(json_data['slat_ns'])
+        if 'clat_ns' in json_data:
+            kwargs['clat_ns'] = IoLatency.new(json_data['clat_ns'])
+        if 'lat_ns' in json_data:
+            kwargs['lat_ns'] = IoLatency.new(json_data['lat_ns'])
+        return cls(**kwargs)
+
+
+
+
 
 @dataclass
 class JobResult:
@@ -239,36 +288,52 @@ class JobResult:
     error: int
     eta: int
     elapsed: int
-    job_options: dict[str, str]
-    read: Optional[IoOutput]
-    write: Optional[IoOutput]
-    trim: Optional[IoOutput]
-    sync: Optional[IoOutput]
-    mixed: Optional[IoOutput]
+    job_options: Dict[str, str] = field(metadata={
+        "id": "job options",
+        "name": "job options"
+    })
+    read: AioOutput
+    write: AioOutput
+    trim: AioOutput
+    sync: SyncIoOutput
+    # mixed: Optional[IoOutput]
     job_runtime: int
     usr_cpu: float
     sys_cpu: float
     ctx: int
     majf: int
     minf: int
-    iodepth_level: dict[str, float]
-    iodepth_submit: dict[str, float]
-    iodepth_complete: dict[str, float]
-    latency_ns: dict[str, float]
-    latency_us: dict[str, float]
-    latency_ms: dict[str, float]
+    iodepth_level: Dict[str, float]
+    iodepth_submit: Dict[str, float]
+    iodepth_complete: Dict[str, float]
+    latency_ns: Dict[str, float]
+    latency_us: Dict[str, float]
+    latency_ms: Dict[str, float]
     latency_depth: int
     latency_target: int
     latency_percentile: float
     latency_window: int
 
     @classmethod
-    def new(cls, json_data: dict):
+    def new(cls, json_data: Dict):
         kwargs: dict[str, typing.Any] = {}
         for key, value in json_data.items():
             safe_key = key.replace(' ', '_')
             kwargs[safe_key] = value
+
+        for ioout in ['read', 'write', 'trim', 'mixed']:
+            if ioout in kwargs:
+                kwargs[ioout] = AioOutput.new(json_data[ioout])
+
+        if 'sync' in kwargs:
+            kwargs['sync'] = SyncIoOutput.new(json_data['sync'])
         return cls(**kwargs)
+
+
+
+fio_input_schema = plugin.build_object_schema(FioParams)
+job_schema = plugin.build_object_schema(JobResult)
+JobsResults = schema.ListType(job_schema)
 
 
 @dataclass
@@ -276,26 +341,46 @@ class FioSuccessOutput:
     fio_version: str = field(metadata={
         "id": "fio version",
         "name": "fio version"
-
     })
     timestamp: int
     timestamp_ms: int
     time: str
-    jobs: List[JobResult]
-    # global_options: Optional[dict[str, str]] = None
-    # disk_util: Optional[List[DiskUtilization]] = None
+    jobs: typing.List[JobResult]
+    # global_options: Optional[Dict[str, str]] = field(
+    #     default=None,
+    #     metadata={
+    #         "id": "global options",
+    #         "name": "global options"
+    #         }
+    # )
+    disk_util: typing.Optional[typing.List[DiskUtilization]] = None
 
     @classmethod
     def new(cls, json_data: dict):
         kwargs: dict[str, typing.Any] = {}
+
         for key, value in json_data.items():
             safe_key = key.replace(' ', '_')
             kwargs[safe_key] = value
+
+        kwargs['jobs'] = [
+            JobResult.new(job_result)
+            for job_result in json_data['jobs']
+        ]
+
+        if 'disk_util' in json_data:
+            # print(json_data['disk_util'])
+            kwargs['disk_util'] = [
+                DiskUtilization(**disk)
+                for disk in json_data['disk_util']
+            ]
+
         return cls(**kwargs)
 
 
 
-fio_input_schema = plugin.build_object_schema(FioParams)
+
+
 fio_output_schema = plugin.build_object_schema(FioSuccessOutput)
 
 
@@ -318,7 +403,7 @@ def run(params: FioParams) -> typing.Tuple[str, Union[FioSuccessOutput, FioError
     ]
 
     try:
-        out = subprocess.check_output(
+        subprocess.check_output(
             cmd
         )
     except subprocess.CalledProcessError as error:
@@ -328,9 +413,8 @@ def run(params: FioParams) -> typing.Tuple[str, Union[FioSuccessOutput, FioError
         fio_results = output_file.read()
 
     fio_json = json.loads(fio_results)
-
+    # output = FioSuccessOutput(**fio_json)
     output = FioSuccessOutput.new(fio_json)
-
     return 'success', output
 
 

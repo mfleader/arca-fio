@@ -1,5 +1,5 @@
 name: poisson-rate-submit
-size: 1024
+size: 1m
 readwrite: randread
 ioengine: libaio
 iodepth: 32
