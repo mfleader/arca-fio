@@ -6,6 +6,7 @@
 
 * Current working directory is project root
 * Python virtual environment created based on this project's pyproject.toml, and activated
+* [fio](https://fio.readthedocs.io/en/latest/fio_doc.html) installed locally
 
 
 ```shell
