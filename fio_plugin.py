@@ -16,6 +16,7 @@ from readline import read_history_file
 import sys
 import typing
 import enum
+from enum import Enum
 import tempfile
 import yaml
 import json
@@ -26,66 +27,47 @@ import shutil
 import csv
 import dataclasses
 from dataclasses import dataclass, field
-# import dataclasses
 from typing import Optional, Union, Annotated, Dict
 from arcaflow_plugin_sdk import plugin
 from arcaflow_plugin_sdk import schema
 
 
-# see https://fio.readthedocs.io/en/latest/fio_doc.html#i-o-type
-IoPattern = enum.Enum(
-    'IoPattern',
-    ' '.join((
-        'read', 'write', 'randread', 'randwrite', 'randtrim',
-        'rw', 'randrw', 'trimwrite'
-    ))
-)
+iopatterns = set((
+    'read', 'write', 'randread', 'randwrite',
+    'rw', 'readwrite', 'randrw',
+    # 'trimwrite', seemed to hang
+    # 'randtrim', shell execution doesn't work
+))
+sync_io_engines = set((
+    'sync', 'psync'
+))
+async_io_engines = set((
+    'libaio', 'windowsaio'
+))
+io_submit_modes = set((
+    'inline', 'offload'
+))
+rate_processes = set((
+    'linear', 'poisson'
+))
 
 
-# TODO: rw,readwrite union value?
+def str_enum(name: str, strings: typing.Set):
+    e = enum.Enum(
+        name,
+        {key:key for key in strings}
+    )
+    e.__str__ = lambda x: x.value
+    return e
 
 
-# TODO: readwrite sequencer
-# RwSequencer = enum.Enum(
-#     'sequential', 'identical'
-# )
-
-UnifiedRwReport = enum.Enum(
-    'UnifiedRwReport',
-    ' '.join(('none', 'mixed', 'both'))
-)
-
-
-sync_io_engines = set(('sync', 'psync'))
-
-SyncIoEngine = enum.Enum(
-    'SyncIoEngine',
-    list(sync_io_engines)
-)
-
-async_io_engines = set(('libaio', 'windowsaio'))
-
-AsyncIoEngine = enum.Enum(
-    'AsyncIoEngine',
-    list(async_io_engines)
-)
-
-# TODO: add other ioengines?
-# https://fio.readthedocs.io/en/latest/fio_doc.html#i-o-engine
+IoPattern = str_enum('IoPattern', iopatterns)
+SyncIoEngine = str_enum('SyncIoEngine', sync_io_engines)
+AsyncIoEngine = str_enum('AsyncIoEngine', async_io_engines)
 IoEngine = Union[SyncIoEngine, AsyncIoEngine]
+IoSubmitMode = str_enum('IoSubmitMode', io_submit_modes)
+RateProcess = str_enum('RateProcess', rate_processes)
 
-
-
-
-IoSubmitMode = enum.Enum(
-    'IoSubmitMode',
-    ' '.join(('inline', 'offload'))
-)
-
-RateProcess = enum.Enum(
-    'RateProcess',
-    ' '.join(('linear', 'poisson'))
-)
 
 
 @dataclass
@@ -94,102 +76,23 @@ class FioErrorOutput:
 
 
 @dataclass
-class DiskUtilization:
-    name: str
-    read_ios: int
-    write_ios: int
-    read_merges: int
-    write_merges: int
-    read_ticks: int
-    write_ticks: int
-    in_queue: int
-    util: float
-    aggr_read_ios: Optional[int] = None
-    aggr_write_ios: Optional[int] = None
-    aggr_read_merges: Optional[int] = None
-    aggr_write_merge: Optional[int] = None
-    aggr_read_ticks: Optional[int] = None
-    aggr_write_ticks: Optional[int] = None
-    aggr_in_queue: Optional[int]= None
-    aggr_util: Optional[float] = None
-
-
-# @dataclass
-# class IoType:
-#     atomic: Optional[bool] = False
-#     buffered: Optional[bool] = True
-#     direct: Optional[bool] = False
-#     readwrite: Optional[IoPattern] = 'read'
-#     # rw_sequencer = Optional[RwSequencer] =
-#     unified_rw_reporting: Optional[UnifiedRwReport] = 'none'
-#     randrepeat: Optional[bool] = True
-#     allrandrepeat: Optional[bool] = False
-#     # randseed: Optional[Union[int, None]] = None
-
-
-# @dataclass
-# class IoSize:
-#     size: str
-
-
-# @dataclass
-# class IoDepth:
-#     iodepth: int
-#     io_submit_mode: IoSubmitMode
-
-
-# @dataclass
-# class IoRate:
-#     rate_iops: int
-#     rate_process: Optional[RateProcess] = 'linear'
-
-
-# @dataclass
-# class FioParams2:
-#     iotype: IoType
-#     ioengine: IoEngine
-#     iodepth: IoDepth
-#     iorate: IoRate
-
-
-
-@dataclass
 class FioParams:
     name: str
     size: str
-    # ioengine_str: str
-    # ioengine: IoEngine = field(init=False)
     ioengine: str
-    iodepth: int  # only used with async ioengines
-    # io_submit_mode: IoSubmitMode  # only used with async ioengines
-    io_submit_mode: str
+    iodepth: int
+    io_submit_mode: IoSubmitMode
     rate_iops: int
-    # rate_process: Optional[RateProcess] = 'linear'
-    rate_process: Optional[str] = 'linear'
     # direct: Optional[bool] = False
     # direct: Annotated[Optional[int], validation.max(1)] = 0
     direct: Optional[int] = 0
-    # readwrite: Optional[IoPattern] = 'read'
-    readwrite: Optional[str] = 'read'
+    atomic: Optional[int] = 0
+    buffered: Optional[int] = 1
+    readwrite: Optional[IoPattern] = IoPattern.read.value
+    rate_process: Optional[RateProcess] = RateProcess.linear.value
 
 
 
-# @dataclass
-# class JobMetadata:
-#     jobname: str
-#     groupid: int
-#     error: int
-#     eta: int
-#     elapsed: int
-#     job_options: dict
-
-#     @classmethod
-#     def new(cls, json_data: dict):
-#         kwargs: dict[str, typing.Any] = {}
-#         for key, value in json_data.items():
-#             safe_key = key.replace(' ', '_')
-#             kwargs[safe_key] = value
-#         return cls(**kwargs)
 
 
 @dataclass
@@ -238,7 +141,6 @@ class AioOutput:
 
 @dataclass
 class JobResult:
-    # metadata: JobMetadata
     jobname: str
     groupid: int
     error: int
@@ -252,7 +154,6 @@ class JobResult:
     write: AioOutput
     trim: AioOutput
     sync: SyncIoOutput
-    # mixed: Optional[IoOutput]
     job_runtime: int
     usr_cpu: float
     sys_cpu: float
@@ -269,6 +170,27 @@ class JobResult:
     latency_target: int
     latency_percentile: float
     latency_window: int
+
+
+@dataclass
+class DiskUtilization:
+    name: str
+    read_ios: int
+    write_ios: int
+    read_merges: int
+    write_merges: int
+    read_ticks: int
+    write_ticks: int
+    in_queue: int
+    util: float
+    aggr_read_ios: Optional[int] = None
+    aggr_write_ios: Optional[int] = None
+    aggr_read_merges: Optional[int] = None
+    aggr_write_merge: Optional[int] = None
+    aggr_read_ticks: Optional[int] = None
+    aggr_write_ticks: Optional[int] = None
+    aggr_in_queue: Optional[int]= None
+    aggr_util: Optional[float] = None
 
 
 fio_input_schema = plugin.build_object_schema(FioParams)
@@ -310,7 +232,7 @@ def run(params: FioParams) -> typing.Tuple[str, Union[FioSuccessOutput, FioError
     cmd = [
         'fio',
         *[
-            f"--{key}={value}" for key, value in dataclasses.asdict(params).items()
+            f"--{key}={str(value)}" for key, value in dataclasses.asdict(params).items()
         ],
         '--output-format=json+',
         f"--output={outfile_name}.json"
