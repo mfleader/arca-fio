@@ -313,7 +313,7 @@ def run(params: FioParams) -> typing.Tuple[str, Union[FioSuccessOutput, FioError
             f"--{key}={value}" for key, value in dataclasses.asdict(params).items()
         ],
         '--output-format=json+',
-        f"--output=tmp/{outfile_name}.json"
+        f"--output={outfile_name}.json"
     ]
 
     try:
@@ -321,7 +321,7 @@ def run(params: FioParams) -> typing.Tuple[str, Union[FioSuccessOutput, FioError
     except subprocess.CalledProcessError as error:
         return 'error', FioErrorOutput(str(error))
 
-    with open(f'tmp/{outfile_name}.json', 'r') as output_file:
+    with open(f'{outfile_name}.json', 'r') as output_file:
         fio_results = output_file.read()
 
     output: FioSuccessOutput = fio_output_schema.unserialize(json.loads(fio_results))

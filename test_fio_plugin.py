@@ -33,22 +33,23 @@ class FioPluginTest(unittest.TestCase):
             )
         )
 
-    # def test_functional(self):
-    #     params = fio_plugin.FioParams(
-    #             **poisson_submit_input
-    #         )
+    def test_functional(self):
+        params = fio_plugin.FioParams(
+                **poisson_submit_input
+            )
 
-    #     output_id, output_data = fio_plugin.run(params)
-    #     self.assertEqual('success', output_id)
-    #     self.assertEqual(
-    #         output_data,
-    #         fio_plugin.FioSuccessOutput(
-    #             'fio-3.29',
-    #             1659468121,
-    #             1659468121278,
-    #             "Tue Aug  2 15:22:01 2022",
-    #         )
-    #     )
+        output_id, output_data = fio_plugin.run(params)
+
+        with open('fio-plus.json', 'r') as fio_output_file:
+            fio_results = fio_output_file.read()
+            output_actual: fio_plugin.FioSuccessOutput = fio_plugin.fio_output_schema.unserialize(
+                json.loads(fio_results))
+
+        self.assertEqual('success', output_id)
+        self.assertEqual(
+            output_data,
+            output_actual
+        )
 
 
 
