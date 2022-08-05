@@ -16,40 +16,29 @@ from readline import read_history_file
 import sys
 import typing
 import enum
-from enum import Enum
-import tempfile
-import yaml
 import json
 import subprocess
-import fileinput
-import os
-import shutil
-import csv
 import dataclasses
+from traceback import format_exc
 from dataclasses import dataclass, field
 from typing import Optional, Union, Annotated, Dict
+
 from arcaflow_plugin_sdk import plugin
 from arcaflow_plugin_sdk import schema
 
 
-iopatterns = set((
+iopatterns = {
     'read', 'write', 'randread', 'randwrite',
     'rw', 'readwrite', 'randrw',
     # 'trimwrite', seemed to hang
     # 'randtrim', shell execution doesn't work
-))
-sync_io_engines = set((
+}
+sync_io_engines = {
     'sync', 'psync'
-))
-async_io_engines = set((
+}
+async_io_engines = {
     'libaio', 'windowsaio'
-))
-io_submit_modes = set((
-    'inline', 'offload'
-))
-rate_processes = set((
-    'linear', 'poisson'
-))
+}
 
 
 def str_enum(name: str, strings: typing.Set):
@@ -65,8 +54,8 @@ IoPattern = str_enum('IoPattern', iopatterns)
 SyncIoEngine = str_enum('SyncIoEngine', sync_io_engines)
 AsyncIoEngine = str_enum('AsyncIoEngine', async_io_engines)
 IoEngine = Union[SyncIoEngine, AsyncIoEngine]
-IoSubmitMode = str_enum('IoSubmitMode', io_submit_modes)
-RateProcess = str_enum('RateProcess', rate_processes)
+IoSubmitMode = str_enum('IoSubmitMode', {'inline', 'offload'})
+RateProcess = str_enum('RateProcess', {'linear', 'poisson'})
 
 
 
@@ -227,27 +216,29 @@ fio_output_schema = plugin.build_object_schema(FioSuccessOutput)
     outputs={"success": FioSuccessOutput, "error": FioErrorOutput}
 )
 def run(params: FioParams) -> typing.Tuple[str, Union[FioSuccessOutput, FioErrorOutput]]:
-
-    outfile_name = 'fio-plus'
-    cmd = [
-        'fio',
-        *[
-            f"--{key}={str(value)}" for key, value in dataclasses.asdict(params).items()
-        ],
-        '--output-format=json+',
-        f"--output={outfile_name}.json"
-    ]
-
     try:
-        subprocess.check_output(cmd)
-    except subprocess.CalledProcessError as error:
-        return 'error', FioErrorOutput(str(error))
+        outfile_name = 'fio-plus'
+        cmd = [
+            'fio',
+            *[
+                f"--{key}={str(value)}" for key, value in dataclasses.asdict(params).items()
+            ],
+            '--output-format=json+',
+            f"--output={outfile_name}.json"
+        ]
 
-    with open(f'{outfile_name}.json', 'r') as output_file:
-        fio_results = output_file.read()
+        try:
+            subprocess.check_output(cmd)
+        except subprocess.CalledProcessError:
+            return 'error', FioErrorOutput(format_exc())
 
-    output: FioSuccessOutput = fio_output_schema.unserialize(json.loads(fio_results))
-    return 'success', output
+        with open(f'{outfile_name}.json', 'r') as output_file:
+            fio_results = output_file.read()
+
+        output: FioSuccessOutput = fio_output_schema.unserialize(json.loads(fio_results))
+        return 'success', output
+    except Exception:
+        return 'oops', FioErrorOutput(format_exc())
 
 
 if __name__ == '__main__':
