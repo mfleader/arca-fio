@@ -11,8 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import re
-from readline import read_history_file
 import sys
 import typing
 import enum
@@ -25,6 +23,8 @@ from typing import Optional, Union, Annotated, Dict
 
 from arcaflow_plugin_sdk import plugin
 from arcaflow_plugin_sdk import schema
+
+from arcaflow_plugin_sdk import validation
 
 
 iopatterns = {
@@ -58,7 +58,6 @@ IoSubmitMode = str_enum('IoSubmitMode', {'inline', 'offload'})
 RateProcess = str_enum('RateProcess', {'linear', 'poisson'})
 
 
-
 @dataclass
 class FioErrorOutput:
     error: str
@@ -72,11 +71,10 @@ class FioParams:
     iodepth: int
     io_submit_mode: IoSubmitMode
     rate_iops: int
-    # direct: Optional[bool] = False
-    # direct: Annotated[Optional[int], validation.max(1)] = 0
-    direct: Optional[int] = 0
-    atomic: Optional[int] = 0
-    buffered: Optional[int] = 1
+    direct: Annotated[Optional[int], validation.min(0), validation.max(1)] = 0
+    # direct: Optional[int] = 0
+    atomic: Annotated[Optional[int], validation.min(0), validation.max(1)] = 0
+    buffered: Annotated[Optional[int], validation.min(0), validation.max(1)] = 1
     readwrite: Optional[IoPattern] = IoPattern.read.value
     rate_process: Optional[RateProcess] = RateProcess.linear.value
 
