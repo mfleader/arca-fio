@@ -27,59 +27,69 @@ from arcaflow_plugin_sdk import schema
 from arcaflow_plugin_sdk import validation
 
 
-iopatterns = {
-    'read', 'write', 'randread', 'randwrite',
-    'rw', 'readwrite', 'randrw',
-    # 'trimwrite', seemed to hang
-    # 'randtrim', shell execution doesn't work
-}
-sync_io_engines = {
-    'sync', 'psync'
-}
-async_io_engines = {
-    'libaio', 'windowsaio'
-}
+class IoPattern(str, enum.Enum):
+    read = 'read'
+    write = 'write'
+    randread = 'randread'
+    randwrite = 'randwrite'
+    rw = 'rw'
+    readwrite = 'readwrite'
+    randrw = 'randrw'
+    trimwrite = 'trimwrite'
+    randtrim = 'randtrim'
+
+    def __str__(self) -> str:
+        return self.value
 
 
-def str_enum(name: str, strings: typing.Set):
-    e = enum.Enum(
-        name,
-        {key:key for key in strings}
-    )
-    e.__str__ = lambda x: x.value
-    return e
+class RateProcess(str, enum.Enum):
+    linear = 'linear'
+    poisson = 'poisson'
+
+    def __str__(self) -> str:
+        return self.value
 
 
-IoPattern = str_enum('IoPattern', iopatterns)
-SyncIoEngine = str_enum('SyncIoEngine', sync_io_engines)
-AsyncIoEngine = str_enum('AsyncIoEngine', async_io_engines)
-IoEngine = Union[SyncIoEngine, AsyncIoEngine]
-IoSubmitMode = str_enum('IoSubmitMode', {'inline', 'offload'})
-RateProcess = str_enum('RateProcess', {'linear', 'poisson'})
+class IoSubmitMode(str, enum.Enum):
+    inline = 'inline'
+    offload = 'offload'
+
+    def __str__(self) -> str:
+        return self.value
 
 
-@dataclass
-class FioErrorOutput:
-    error: str
+class IoEngine(str, enum.Enum):
+    _sync_io_engines = {
+        'sync', 'psync'
+    }
+    _async_io_engines = {
+        'libaio', 'windowsaio'
+    }
+    sync = 'sync'
+    psync = 'psync'
+    libaio = 'libaio'
+    windowsaio = 'windowsaio'
+
+    def __str__(self) -> str:
+        return self.value
+
+    def is_sync(self) -> bool:
+        return self.value in self._sync_io_engines
 
 
 @dataclass
 class FioParams:
     name: str
     size: str
-    ioengine: str
+    ioengine: IoEngine
     iodepth: int
-    io_submit_mode: IoSubmitMode
     rate_iops: int
+    io_submit_mode: IoSubmitMode
     direct: Annotated[Optional[int], validation.min(0), validation.max(1)] = 0
-    # direct: Optional[int] = 0
     atomic: Annotated[Optional[int], validation.min(0), validation.max(1)] = 0
     buffered: Annotated[Optional[int], validation.min(0), validation.max(1)] = 1
     readwrite: Optional[IoPattern] = IoPattern.read.value
     rate_process: Optional[RateProcess] = RateProcess.linear.value
-
-
-
 
 
 @dataclass
@@ -178,6 +188,11 @@ class DiskUtilization:
     aggr_write_ticks: Optional[int] = None
     aggr_in_queue: Optional[int]= None
     aggr_util: Optional[float] = None
+
+
+@dataclass
+class FioErrorOutput:
+    error: str
 
 
 fio_input_schema = plugin.build_object_schema(FioParams)
