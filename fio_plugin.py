@@ -101,140 +101,390 @@ class FioParams:
         default=0,
         metadata={
             'name': 'Direct',
-            'description': ''
+            'description': 'non-buffered IO'
         }
     )
     atomic: typing.Annotated[Optional[int], validation.min(0)] = field(
         default=0,
         metadata={
             'name': 'Atomic',
-            'description': ''
+            'description': 'attemp to use atomic direct IO'
         }
     )
     buffered: typing.Annotated[Optional[int], validation.min(0)] = field(
         default=0,
         metadata={
             'name': 'Buffered',
-            'description': ''
+            'description': 'use buffered IO'
         }
     )
     readwrite: Optional[IoPattern] = field(
         default=IoPattern.read.value,
         metadata={
             'name': 'Read/Write',
-            'description': ''
+            'description': 'type of IO pattern'
         }
     )
     rate_process: Optional[RateProcess] = field(
         default=RateProcess.linear.value,
         metadata={
             'name': 'Rate Process',
-            'description': ''
+            'description': 'Controls the distribution of delay between IO submissions.'
         }
     )
 
 
 @dataclass
 class IoLatency:
-    min_: int = field(metadata={"id": "min" })
-    max_: int = field(metadata={"id": "max"})
-    mean: float
-    stddev: float
-    N: int
-    percentile: Optional[Dict[str, int]] = None
-    bins: Optional[Dict[str, int]] = None
+    min_: int = field(metadata={
+        "id": "min",
+        "name": "IO Latency Min",
+        "description": "IO latency minimum"
+    })
+    max_: int = field(metadata={
+        "id": "max",
+        "name": "IO Latency Max",
+        "description": "IO latency maximum"
+    })
+    mean: float = field(metadata={
+        "name": "IO Latency Mean",
+        "description": "IO latency mean"
+    })
+    stddev: float = field(metadata={
+        "name": "IO Latency StdDev",
+        "description": "IO latency standard deviation"
+    })
+    N: int = field(metadata={
+        "name": "IO Latency Sample Quantity",
+        "description": "quantity of IO latency samples collected"
+    })
+    percentile: Optional[Dict[str, int]] = field(
+        default=None,
+        metadata={
+            "name": "IO Latency Cumulative Distribution",
+            "description": "Cumulative distribution of IO latency sample"
+        }
+    )
+    bins: Optional[Dict[str, int]] = field(
+        default=None,
+        metadata={
+            "name": "Binned IO Latency Sample",
+            "description": "binned version of the IO latencies collected"
+        }
+    )
 
 
 @dataclass
 class SyncIoOutput:
-    total_ios: int
-    lat_ns: IoLatency
+    total_ios: int = field(metadata={
+        "name": "Quantity of Latencies Logged",
+        "description": "Quantity of latency samples collected (i.e. logged)."
+    })
+    lat_ns: IoLatency = field(metadata={
+        "name": "Latency ns",
+        "description": "Total latency in nanoseconds."
+    })
 
 
 @dataclass
 class AioOutput:
-    io_bytes: int
-    io_kbytes: int
-    bw_bytes: int
-    bw: int
-    iops: float
-    runtime: int
-    total_ios: int
-    short_ios: int
-    drop_ios: int
-    slat_ns: IoLatency
-    clat_ns: IoLatency
-    lat_ns: IoLatency
-    bw_min: int
-    bw_max: int
-    bw_agg: float
-    bw_mean: float
-    bw_dev: float
-    bw_samples: int
-    iops_min: int
-    iops_max: int
-    iops_mean: float
-    iops_stddev: float
-    iops_samples: int
+    io_bytes: int = field(metadata={
+        "name": "IO B",
+        "description": "Quantity of IO transactions in bytes"
+    })
+    io_kbytes: int = field(metadata={
+        "name": "IO KiB",
+        "description": "Quantity of IO transactions in kibibytes"
+    })
+    bw_bytes: int = field(metadata={
+        "name": "Bandwidth B",
+        "description": "IO bandwidth used in bytes"
+    })
+    bw: int = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    iops: float = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    runtime: int = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    total_ios: int = field(metadata={
+        "name": "Quantity of Latencies Logged",
+        "description": "Quantity of latency samples collected (i.e. logged)"
+    })
+    short_ios: int = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    drop_ios: int = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    slat_ns: IoLatency = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    clat_ns: IoLatency = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    lat_ns: IoLatency = field(metadata={
+        "name": "Latency ns",
+        "description": "Total latency in nanoseconds."
+    })
+    bw_min: int = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    bw_max: int = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    bw_agg: float = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    bw_mean: float = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    bw_dev: float = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    bw_samples: int = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    iops_min: int = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    iops_max: int = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    iops_mean: float = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    iops_stddev: float = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    iops_samples: int = field(metadata={
+        "name": "",
+        "description": ""
+    })
 
 
 @dataclass
 class JobResult:
-    jobname: str
-    groupid: int
-    error: int
-    eta: int
-    elapsed: int
+    jobname: str = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    groupid: int = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    error: int = field(metadata={
+        "name": "Error",
+        "description": "An error code thrown by the job."
+    })
+    eta: int = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    elapsed: int = field(metadata={
+        "name": "",
+        "description": ""
+    })
     job_options: Dict[str, str] = field(metadata={
         "id": "job options",
         "name": "job options"
     })
-    read: AioOutput
-    write: AioOutput
-    trim: AioOutput
-    sync: SyncIoOutput
-    job_runtime: int
-    usr_cpu: float
-    sys_cpu: float
-    ctx: int
-    majf: int
-    minf: int
-    iodepth_level: Dict[str, float]
-    iodepth_submit: Dict[str, float]
-    iodepth_complete: Dict[str, float]
-    latency_ns: Dict[str, float]
-    latency_us: Dict[str, float]
-    latency_ms: Dict[str, float]
-    latency_depth: int
-    latency_target: int
-    latency_percentile: float
-    latency_window: int
+    read: AioOutput = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    write: AioOutput = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    trim: AioOutput = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    sync: SyncIoOutput = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    job_runtime: int = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    usr_cpu: float = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    sys_cpu: float = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    ctx: int = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    majf: int = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    minf: int = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    iodepth_level: Dict[str, float] = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    iodepth_submit: Dict[str, float] = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    iodepth_complete: Dict[str, float] = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    latency_ns: Dict[str, float] = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    latency_us: Dict[str, float] = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    latency_ms: Dict[str, float] = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    latency_depth: int = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    latency_target: int = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    latency_percentile: float = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    latency_window: int = field(metadata={
+        "name": "",
+        "description": ""
+    })
 
 
 @dataclass
 class DiskUtilization:
-    name: str
-    read_ios: int
-    write_ios: int
-    read_merges: int
-    write_merges: int
-    read_ticks: int
-    write_ticks: int
-    in_queue: int
-    util: float
-    aggr_read_ios: Optional[int] = None
-    aggr_write_ios: Optional[int] = None
-    aggr_read_merges: Optional[int] = None
-    aggr_write_merge: Optional[int] = None
-    aggr_read_ticks: Optional[int] = None
-    aggr_write_ticks: Optional[int] = None
-    aggr_in_queue: Optional[int]= None
-    aggr_util: Optional[float] = None
+    name: str = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    read_ios: int = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    write_ios: int = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    read_merges: int = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    write_merges: int = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    read_ticks: int = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    write_ticks: int = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    in_queue: int = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    util: float = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    aggr_read_ios: Optional[int] = field(
+        default=None,
+        metadata={
+            "name": "",
+            "description": ""
+    })
+    aggr_write_ios: Optional[int] = field(
+        default=None,
+        metadata={
+            "name": "",
+            "description": ""
+    })
+    aggr_read_merges: Optional[int] = field(
+        default=None,
+        metadata={
+            "name": "",
+            "description": ""
+    })
+    aggr_write_merge: Optional[int] = field(
+        default=None,
+        metadata={
+            "name": "",
+            "description": ""
+    })
+    aggr_read_ticks: Optional[int] = field(
+        default=None,
+        metadata={
+            "name": "",
+            "description": ""
+    })
+    aggr_write_ticks: Optional[int] = field(
+        default=None,
+        metadata={
+            "name": "",
+            "description": ""
+    })
+    aggr_in_queue: Optional[int] = field(
+        default=None,
+        metadata={
+            "name": "",
+            "description": ""
+    })
+    aggr_util: Optional[float] = field(
+        default=None,
+        metadata={
+            "name": "",
+            "description": ""
+    })
 
 
 @dataclass
 class FioErrorOutput:
-    error: str
+    error: str = field(
+        metadata={
+            "name": "Job Error Traceback",
+            "description": "Fio job traceback for debugging"
+    })
 
 
 fio_input_schema = plugin.build_object_schema(FioParams)
@@ -247,10 +497,22 @@ class FioSuccessOutput:
         "id": "fio version",
         "name": "fio version"
     })
-    timestamp: int
-    timestamp_ms: int
-    time: str
-    jobs: typing.List[JobResult]
+    timestamp: int = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    timestamp_ms: int = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    time: str = field(metadata={
+        "name": "",
+        "description": ""
+    })
+    jobs: typing.List[JobResult] = field(metadata={
+        "name": "",
+        "description": ""
+    })
     global_options: Optional[Dict[str, str]] = field(
         default=None,
         metadata={
@@ -258,7 +520,12 @@ class FioSuccessOutput:
             "name": "global options"
             }
     )
-    disk_util: Optional[typing.List[DiskUtilization]] = None
+    disk_util: Optional[typing.List[DiskUtilization]] = field(
+        default=None,
+        metadata={
+        "name": "",
+        "description": ""
+    })
 
 
 fio_output_schema = plugin.build_object_schema(FioSuccessOutput)
