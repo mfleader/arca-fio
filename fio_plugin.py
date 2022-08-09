@@ -1,16 +1,3 @@
-"""
-Copyright 2022 Matthew F Leader
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-    http://www.apache.org/licenses/LICENSE-2.0
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-"""
-
 import sys
 import typing
 import enum
@@ -79,17 +66,72 @@ class IoEngine(str, enum.Enum):
 
 @dataclass
 class FioParams:
-    name: str
-    size: str
-    ioengine: IoEngine
-    iodepth: int
-    rate_iops: int
-    io_submit_mode: IoSubmitMode
-    direct: typing.Annotated[Optional[int], validation.min(0), validation.max(1)] = 0
-    atomic: typing.Annotated[Optional[int], validation.min(0), validation.max(1)] = 0
-    buffered: typing.Annotated[Optional[int], validation.min(0), validation.max(1)] = 1
-    readwrite: Optional[IoPattern] = IoPattern.read.value
-    rate_process: Optional[RateProcess] = RateProcess.linear.value
+    name: Annotated[str, validation.min(1)] = field(metadata={
+        "name": 'name',
+        'description': 'the name of the fio job'
+    })
+    size: Annotated[str, validation.min(2)] = field(metadata={
+        "name": 'size',
+        'description': (
+            """The total size in bytes of the file IO for each thread of this job."""
+            """If a unit other than bytes is used, the integer is concatenated with """
+            """the corresponding unit abbreviation (i.e. 10KiB, 10MiB, 10GiB, ...)"""
+        )
+    })
+    ioengine: IoEngine = field(metadata={
+        "name": "IO Engine",
+        "description": "Defines how the job issues IO to the file."
+    })
+    iodepth: int = field(metadata={
+        "name": "IO Depth",
+        "description": "number of IO units to keep in flight against the file."
+    })
+    rate_iops: int = field(metadata={
+        "name": 'IOPS Cap',
+        "description": 'maximum allowed rate of IO operations per second'
+    })
+    io_submit_mode: IoSubmitMode = field(metadata={
+        "name": "IO Submit Mode",
+        "description": "Controls how fio submits IO to the IO engine."
+    })
+    # direct: typing.Annotated[Optional[int], validation.min(0), validation.max(1)] = 0
+    # atomic: typing.Annotated[Optional[int], validation.min(0), validation.max(1)] = 0
+    # buffered: typing.Annotated[Optional[int], validation.min(0), validation.max(1)] = 1
+    direct: typing.Annotated[Optional[int], validation.min(0)] = field(
+        default=0,
+        metadata={
+            'name': 'Direct',
+            'description': ''
+        }
+    )
+    atomic: typing.Annotated[Optional[int], validation.min(0)] = field(
+        default=0,
+        metadata={
+            'name': 'Atomic',
+            'description': ''
+        }
+    )
+    buffered: typing.Annotated[Optional[int], validation.min(0)] = field(
+        default=0,
+        metadata={
+            'name': 'Buffered',
+            'description': ''
+        }
+    )
+    readwrite: Optional[IoPattern] = field(
+        default=IoPattern.read.value,
+        metadata={
+            'name': 'Read/Write',
+            'description': ''
+        }
+    )
+    rate_process: Optional[RateProcess] = field(
+        default=RateProcess.linear.value,
+        metadata={
+            'name': 'Rate Process',
+            'description': ''
+        }
+    )
 
 
 @dataclass
