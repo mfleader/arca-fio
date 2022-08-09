@@ -201,16 +201,16 @@ class AioOutput:
         "description": "IO bandwidth used in bytes"
     })
     bw: int = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "Bandwidth KiB",
+        "description": "IO bandwidth used in kibibytes"
     })
     iops: float = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "IOPS",
+        "description": "IO operations per second"
     })
     runtime: int = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "Runtime",
+        "description": "Length of time in seconds on this IO pattern type"
     })
     total_ios: int = field(metadata={
         "name": "Quantity of Latencies Logged",
@@ -225,80 +225,80 @@ class AioOutput:
         "description": ""
     })
     slat_ns: IoLatency = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "Submission Latency ns",
+        "description": "Submission latency in nanoseconds"
     })
     clat_ns: IoLatency = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "Completion Latency ns",
+        "description": "Completion latency in nanoseconds"
     })
     lat_ns: IoLatency = field(metadata={
         "name": "Latency ns",
         "description": "Total latency in nanoseconds."
     })
     bw_min: int = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "Bandwidth Min",
+        "description": "Bandwidth minimum"
     })
     bw_max: int = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "Bandwidth Max",
+        "description": "Bandwidth maximum"
     })
     bw_agg: float = field(metadata={
-        "name": "",
+        "name": "Bandwidth Aggregate Percentile",
         "description": ""
     })
     bw_mean: float = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "Bandwidth Mean",
+        "description": "Bandwidth mean"
     })
     bw_dev: float = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "Bandwidth Std Dev",
+        "description": "Bandwidth standard deviation"
     })
     bw_samples: int = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "Bandwidth Sample Quantity",
+        "description": "Quantity of bandwidth samples collected"
     })
     iops_min: int = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "IOPS Min",
+        "description": "IO operations per second minimum"
     })
     iops_max: int = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "IOPS Max",
+        "description": "IO operations per second maximum"
     })
     iops_mean: float = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "IOPS Mean",
+        "description": "IO operations per second mean"
     })
     iops_stddev: float = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "IOPS Std Dev",
+        "description": "IO operations per second standard deviation"
     })
     iops_samples: int = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "IOPS Sample Quantity",
+        "description": "Quantity of IOPS samples collected"
     })
 
 
 @dataclass
 class JobResult:
     jobname: str = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "Job Name",
+        "description": "Name of the job configuration"
     })
     groupid: int = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "Thread Group ID",
+        "description": "Identifying number for thread group used in a job."
     })
     error: int = field(metadata={
         "name": "Error",
         "description": "An error code thrown by the job."
     })
     eta: int = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "ETA",
+        "description": "Specifies when real-time estimates should be printed."
     })
     elapsed: int = field(metadata={
         "name": "",
@@ -495,36 +495,37 @@ job_schema = plugin.build_object_schema(JobResult)
 class FioSuccessOutput:
     fio_version: str = field(metadata={
         "id": "fio version",
-        "name": "fio version"
+        "name": "Fio version",
+        "description": "Fio version used on job"
     })
     timestamp: int = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "Timestamp",
+        "description": "POSIX compliant timestamp in seconds"
     })
     timestamp_ms: int = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "timestamp ms",
+        "description": "POSIX compliant timestamp in milliseconds"
     })
     time: str = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "Time",
+        "description": "Human readable datetime string"
     })
     jobs: typing.List[JobResult] = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "Jobs",
+        "description": "List of job input parameter configurations"
     })
     global_options: Optional[Dict[str, str]] = field(
         default=None,
         metadata={
             "id": "global options",
-            "name": "global options"
-            }
-    )
+            "name": "global options",
+            "description": "Options applied to every job"
+    })
     disk_util: Optional[typing.List[DiskUtilization]] = field(
         default=None,
         metadata={
-        "name": "",
-        "description": ""
+        "name": "Disk Utlization",
+        "description": "Disk utilization during job"
     })
 
 
