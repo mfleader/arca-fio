@@ -14,7 +14,7 @@ PyYAML = ">=5.4"
 type = "git"
 url = "https://github.com/arcalot/arcaflow-plugin-sdk-python.git"
 reference = "main"
-resolved_reference = "c262d2833628c90bc5bd41753bb8a9d7792d22f4"
+resolved_reference = "673a0f66f6a936337b46a444e8c066284a75cc96"
 
 [[package]]
 name = "pyyaml"
@@ -26,8 +26,8 @@ python-versions = ">=3.6"
 
 [metadata]
 lock-version = "1.1"
-python-versions = "^3.9"
-content-hash = "30c33fc8ec70f5e41e7326d61ebf1f7022a81001a029b33ba57491f6b5660b8b"
+python-versions = "^3.10"
+content-hash = "5aee20f11f2547408f5356e64bc4a36dc1f146cb159abc1c15185ab0d5724dfd"
 
 [metadata.files]
 arcaflow-plugin-sdk = []

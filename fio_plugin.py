@@ -85,9 +85,9 @@ class FioParams:
     iodepth: int
     rate_iops: int
     io_submit_mode: IoSubmitMode
-    direct: Annotated[Optional[int], validation.min(0), validation.max(1)] = 0
-    atomic: Annotated[Optional[int], validation.min(0), validation.max(1)] = 0
-    buffered: Annotated[Optional[int], validation.min(0), validation.max(1)] = 1
+    direct: typing.Annotated[Optional[int], validation.min(0), validation.max(1)] = 0
+    atomic: typing.Annotated[Optional[int], validation.min(0), validation.max(1)] = 0
+    buffered: typing.Annotated[Optional[int], validation.min(0), validation.max(1)] = 1
     readwrite: Optional[IoPattern] = IoPattern.read.value
     rate_process: Optional[RateProcess] = RateProcess.linear.value
 
