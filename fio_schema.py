@@ -212,12 +212,12 @@ class AioOutput:
         "description": "Quantity of latency samples collected (i.e. logged)"
     })
     short_ios: int = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "Short IOs",
+        "description": "Unclear from documentation. Educated guess: quantity of incomplete IO."
     })
     drop_ios: int = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "Dropped IOs",
+        "description": "Unclear from documentation. Edcuated guess: quantity of dropped IO."
     })
     slat_ns: IoLatency = field(metadata={
         "name": "Submission Latency ns",
@@ -296,180 +296,183 @@ class JobResult:
         "description": "Specifies when real-time estimates should be printed."
     })
     elapsed: int = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "Time Elapsed s",
+        "description": "Execution time up to now in seconds."
     })
     job_options: Dict[str, str] = field(metadata={
         "id": "job options",
-        "name": "job options"
+        "name": "Job Options",
+        "description": "Options passed to the fio executable."
     })
     read: AioOutput = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "Read",
+        "description": "Read IO results."
     })
     write: AioOutput = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "Write",
+        "description": "Write IO results."
     })
     trim: AioOutput = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "Trim",
+        "description": "Trim IO results."
     })
     sync: SyncIoOutput = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "Synchronous",
+        "description": "Synchronous IO results."
     })
     job_runtime: int = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "Runtime",
+        "description": "Execution time used on this job."
     })
     usr_cpu: float = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "User CPU",
+        "description": "CPU usage in user space."
     })
     sys_cpu: float = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "System CPU",
+        "description": "CPU usage in kernel (system) space."
     })
     ctx: int = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "Context Switches",
+        "description": "Quantity of voluntary and involuntary context switches."
     })
     majf: int = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "Major Page Fault",
+        "description": "Quantity of page faults requring physical IO."
     })
     minf: int = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "Minor Page Fault",
+        "description": "Quantity of page faults not requiring physical IO."
     })
     iodepth_level: Dict[str, float] = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "Total IO Depth Frequency Distribution",
+        "description": "Unclear from documentation."
     })
     iodepth_submit: Dict[str, float] = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "Submission IO Depth Frequency Distribution",
+        "description": "Unclear from documentation."
     })
     iodepth_complete: Dict[str, float] = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "Completed IO Depth Frequency Distribution",
+        "description": "Unclear from documentation."
     })
     latency_ns: Dict[str, float] = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "Nanosecond Latency Frequency Distribution",
+        "description": "Unclear from documentation."
     })
     latency_us: Dict[str, float] = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "Microsecond Latency Frequency Distribution",
+        "description": "Unclear from documentation."
     })
     latency_ms: Dict[str, float] = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "Millisecond Latency Frequency Distribution",
+        "description": "Unclear from documentation."
     })
     latency_depth: int = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "Latency Depth",
+        "description": "Latency queue depth."
     })
     latency_target: int = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "Latency Target microseconds",
+        "description": "Maximum allowed latency."
     })
     latency_percentile: float = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "Percent Beat Target Latency",
+        "description": "Proportion of IOs that beat the target latency."
     })
     latency_window: int = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "Latency Window microseconds",
+        "description": (
+            """Used with Latency Target to specify the sample window"""
+            """that the job is run at varying queue depths to test performance.""")
     })
 
 
 @dataclass
 class DiskUtilization:
     name: str = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "Device Name",
+        "description": "Name of the storage device."
     })
     read_ios: int = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "Read IOs",
+        "description": "Quantity of read IO operations."
     })
     write_ios: int = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "Write IOs",
+        "description": "Quantity of write IO operations."
     })
     read_merges: int = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "Read Merges",
+        "description": "Quantity of read merges performed by IO scheduler."
     })
     write_merges: int = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "Write Merges",
+        "description": "Quantity of write merges performed by IO scheduler."
     })
     read_ticks: int = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "Read Ticks",
+        "description": "Quantity of read ticks that kept the device busy."
     })
     write_ticks: int = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "Write Ticks",
+        "description": "Quantity of write ticks that kept the device busy."
     })
     in_queue: int = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "Time in Queue",
+        "description": "Total time spent in device queue. No units are specified in source, nor documentation."
     })
     util: float = field(metadata={
-        "name": "",
-        "description": ""
+        "name": "Device Utilization",
+        "description": "Proportion of time the device was busy."
     })
     aggr_read_ios: Optional[int] = field(
         default=None,
         metadata={
-            "name": "",
-            "description": ""
+            "name": "Workers' Read IOs",
+            "description": "Total read IO operations across all workers."
     })
     aggr_write_ios: Optional[int] = field(
         default=None,
         metadata={
-            "name": "",
-            "description": ""
+            "name": "Workers' Write IOs",
+            "description": "Total write IO operations across all workers."
     })
     aggr_read_merges: Optional[int] = field(
         default=None,
         metadata={
-            "name": "",
-            "description": ""
+            "name": "Workers' Read Merges",
+            "description": "Total read merges across all workers."
     })
     aggr_write_merge: Optional[int] = field(
         default=None,
         metadata={
-            "name": "",
-            "description": ""
+            "name": "Workers' Write Merges",
+            "description": "Total write merges across all workers."
     })
     aggr_read_ticks: Optional[int] = field(
         default=None,
         metadata={
-            "name": "",
-            "description": ""
+            "name": "Workers' Read Ticks",
+            "description": "Total read ticks across all workers."
     })
     aggr_write_ticks: Optional[int] = field(
         default=None,
         metadata={
-            "name": "",
-            "description": ""
+            "name": "Workers' Write Ticks",
+            "description": "Total write ticks across all workers."
     })
     aggr_in_queue: Optional[int] = field(
         default=None,
         metadata={
-            "name": "",
-            "description": ""
+            "name": "Workers' Time in Queue",
+            "description": "Total time in queue across all workers."
     })
     aggr_util: Optional[float] = field(
         default=None,
         metadata={
-            "name": "",
-            "description": ""
+            "name": "Workers' Device Utilization",
+            "description": "Mean device utilization across all workers."
     })
 
 
