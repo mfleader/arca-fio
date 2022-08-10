@@ -1,5 +1,5 @@
 name: poisson-rate-submit
-size: 100k
+size: 100KiB
 readwrite: randrw
 ioengine: sync
 iodepth: 32
