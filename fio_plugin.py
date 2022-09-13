@@ -1,52 +1,67 @@
+#!/usr/bin/env python3
+
 import sys
 import typing
 import json
 import subprocess
-import dataclasses
 from traceback import format_exc
 from typing import Union
+from pathlib import Path
 
 from arcaflow_plugin_sdk import plugin
-from fio_schema import FioParams, FioSuccessOutput, FioErrorOutput, fio_output_schema
+from fio_schema import (
+    FioJob,
+    FioSuccessOutput,
+    FioErrorOutput,
+    fio_output_schema,
+)
 
 
 @plugin.step(
     id="workload",
     name="fio workload",
     description="run an fio workload",
-    outputs={"success": FioSuccessOutput, "error": FioErrorOutput}
+    outputs={"success": FioSuccessOutput, "error": FioErrorOutput},
 )
-def run(params: FioParams) -> typing.Tuple[str, Union[FioSuccessOutput, FioErrorOutput]]:
+def run(
+    params: FioJob,
+) -> typing.Tuple[str, Union[FioSuccessOutput, FioErrorOutput]]:
     try:
-        outfile_name = 'fio-plus'
+        outfile_temp_path = Path("fio-plus.json")
+        infile_temp_path = Path("fio-input-tmp.fio")
+        params.write_params_to_file(infile_temp_path)
         cmd = [
-            'fio',
-            *[
-                f"--{key}={str(value)}" for key, value in dataclasses.asdict(params).items()
-            ],
-            '--output-format=json+',
-            f"--output={outfile_name}.json"
+            "fio",
+            f"{infile_temp_path}",
+            "--output-format=json+",
+            f"--output={outfile_temp_path}",
         ]
-
-        try:
-            subprocess.check_output(cmd)
-        except subprocess.CalledProcessError:
-            return 'error', FioErrorOutput(format_exc())
-
-        with open(f'{outfile_name}.json', 'r') as output_file:
-            fio_results = output_file.read()
-
-        output: FioSuccessOutput = fio_output_schema.unserialize(json.loads(fio_results))
-        return 'success', output
-    except Exception:
-        return 'oops', FioErrorOutput(format_exc())
-
-
-if __name__ == '__main__':
-    sys.exit(
-        plugin.run(
-            plugin.build_schema(
-                run
-            )
+        subprocess.check_output(cmd)
+        output: FioSuccessOutput = fio_output_schema.unserialize(
+            json.loads(outfile_temp_path.read_text())
         )
-    )
+
+        return "success", output
+
+    except FileNotFoundError as exc:
+        if exc.filename == "fio":
+            error_output: FioErrorOutput = FioErrorOutput(
+                "missing fio executable, please install fio package"
+            )
+        else:
+            error_output: FioErrorOutput = FioErrorOutput(format_exc())
+        return "error", error_output
+
+    except Exception:
+        error_output: FioErrorOutput = FioErrorOutput(format_exc())
+        return "error", error_output
+
+    finally:
+        if params.cleanup:
+            infile_temp_path.unlink(missing_ok=True)
+            outfile_temp_path.unlink(missing_ok=True)
+            Path(params.name + ".0.0").unlink(missing_ok=True)
+
+
+if __name__ == "__main__":
+    sys.exit(plugin.run(plugin.build_schema(run)))

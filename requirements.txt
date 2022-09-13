@@ -1,2 +1,1 @@
-arcaflow-plugin-sdk @ git+https://github.com/arcalot/arcaflow-plugin-sdk-python.git@main ; python_version >= "3.9"
-pyyaml==6.0; python_version >= "3.9"
+arcaflow-plugin-sdk; python_version >= "3.9"
